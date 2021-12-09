@@ -16,7 +16,7 @@ def gauss_function(x, y, sigma):
 
 class GaussianFilterOperator:
 
-    def __init__(self, image: np.ndarray, kernel_size=3, sigma=1.0):
+    def __init__(self, image: np.ndarray, kernel_size=7, sigma=1.0):
         self.image = image
         self.kernel_size = kernel_size
         self.sigma = sigma

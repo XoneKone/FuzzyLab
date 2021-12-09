@@ -30,14 +30,9 @@ def save_image(image):
 def run():
     # TODO: Добавить возможность выбора фото из системы
     # path_to_file = open_file()
-    image = cv2.imread(r"C:\Dev\Fuzzy\images\src\fonts-3229.jpg")
-    # cv2.imshow("original", image)
-    # TODO: Прописать свой алгоритм перевода изображения из RGB в GRAY, а не использовать этот
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    # cv2.imshow("gray", gray)
+    image = cv2.imread(r"C:\Dev\Git\FuzzyLab\images\numbers\seven_1.png")
 
-
-    handmade_canny = hc.HandmadeCanny(gray, 10, 60)
+    handmade_canny = hc.HandmadeCanny(image, 10, 50)
     for title, image in handmade_canny.images.items():
         cv2.imshow(title, image)
 

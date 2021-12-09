@@ -1,12 +1,21 @@
 from math import cos, sin
+
+import cv2
+
 from gaussian_filter_operator import GaussianFilterOperator
 import numpy as np
 from numpy import sign
 
 
-# TODO сюда добавить конвертацию в серый
 class HandmadeCanny:
     def __init__(self, image: np.ndarray, low, high):
+        """
+        :param image: Входное изображение
+        :param low: Нижний порог фильтрации
+        :param high: Верхний порог фильтрации
+
+        low и high - указываются в процентах (0-100)
+        """
         self.kernel_size = 3
         self.kernel_x = np.array([[-1, 0, 1],
                                   [-2, 0, 2],
@@ -16,16 +25,29 @@ class HandmadeCanny:
                                   [0, 0, 0],
                                   [1, 2, 1]])
 
-        self.images = {'Gray': image}
+        # словарь, где находятся все фотки ( ключ - название изображения, значение - само изображение)
+        # Список всех ключей [Original, Gray, Blurred, Sobel operator, NonMaximum Suppression, Double thresholding]
+        self.images = {'Original': image}
+
+        self.image = self.rgb_to_gray(image)
+
+        self.images = {'Gray': self.image}
+
         # По умолчанию используется kernel_size = 3, sigma = 1.0
-        self.image = GaussianFilterOperator(image).blur()
+        self.image = GaussianFilterOperator(self.image).blur()
         self.images['Blurred'] = self.image
 
         self.gradient, self.theta = self.operator_sobel()
         self.non_m_grad = self.non_maximum_suppression()
         self.thresh = self.double_thresholding(low, high)
 
+    # TODO: Прописать свой алгоритм перевода изображения из RGB в GRAY, а не использовать этот
+    def rgb_to_gray(self, image):
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        return gray
+
     def operator_sobel(self):
+
         image_row, image_col = self.image.shape
 
         output_x = self.image.copy().astype(np.float)
