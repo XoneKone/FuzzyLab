@@ -507,7 +507,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Сохранить как ...</string>
+     <string>Сохранить в файл</string>
     </property>
    </widget>
    <widget class="QPushButton" name="save">
@@ -555,6 +555,19 @@
       </property>
      </widget>
     </widget>
+   </widget>
+   <widget class="QPushButton" name="calculate">
+    <property name="geometry">
+     <rect>
+      <x>560</x>
+      <y>490</y>
+      <width>131</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Вычислить</string>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">

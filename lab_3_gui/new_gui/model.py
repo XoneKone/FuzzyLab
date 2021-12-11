@@ -6,15 +6,15 @@ from saati_table import SaatiTable
 class Model:
     items = ['Краснодарский парень', 'Урбан', 'Нахлебник', 'Голый повар', 'Мясо под градусом']
     experts = {
-        'Эксперт 1': 'expert_1',
-        'Эксперт 2': 'expert_2',
-        'Эксперт 3': 'expert_3',
-        'Эксперт 4': 'expert_4',
+        'expert_1': 'Эксперт 1',
+        'expert_2': 'Эксперт 2',
+        'expert_3': 'Эксперт 3',
+        'expert_4': 'Эксперт 4',
     }
     criteria = {
-        'Разнообразие': 'assortment',
-        'Качество': 'quantity',
-        'Доставка': 'delivery',
+        'assortment': 'Разнообразие',
+        'quantity': 'Качество',
+        'delivery': 'Доставка',
     }
 
     def __init__(self):
@@ -58,6 +58,15 @@ class Model:
     def is_value_valid(value):
         return SaatiTable.is_value_valid(value)
 
+    def is_valid(self):
+        return all(
+            (
+                self.tables[expert][criterion].is_valid()
+                for expert in self.experts
+                for criterion in self.criteria
+            )
+        ) and self.tables['experts'].is_valid()
+
     def get_result(self):
         """
         Получает словарь, где ключами являются items, а значениями - значения функции принадлежности
@@ -66,8 +75,35 @@ class Model:
 
         return {}
 
-    def save_json(self, path):
+    # нормируем для таблиц экспертов Julia
+    def norm_expert(self):
+        list_average = self.tables['experts'].average()
+        norm_list_expert = [(i / max(list_average)) for i in list_average]
+        return norm_list_expert
+
+    # нормируем для таблицы доверия Julia
+    def norm_trust(self, expert, criterion):
+        list_average = self.tables[expert][criterion].average()
+        norm_list_trust = [(i / sum(list_average)) for i in list_average]
+        return norm_list_trust
+
+    def dump_json(self, path):
         if path:
             with open(path, 'w') as file:
+                data = {'experts': self.tables['experts'].table}
+                for expert in self.experts:
+                    data[expert] = {}
+                    for criterion in self.criteria:
+                        data[expert][criterion] = self.tables[expert][criterion].table
+
                 json.dump(data, file)
 
+    def load_json(self, path):
+        if path:
+            with open(path) as file:
+                data = json.load(file)
+                self.tables['experts'] = SaatiTable.from_data(self.experts, data['experts'])
+                for expert in self.experts:
+                    self.tables[expert] = {}
+                    for criterion in self.criteria:
+                        self.tables[expert][criterion] = SaatiTable.from_data(self.items, data[expert][criterion])

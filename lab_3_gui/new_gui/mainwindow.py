@@ -1,9 +1,5 @@
-import csv
-import json
-import re
 import sys
 
-import numpy as np
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QBrush, QColor
@@ -15,13 +11,18 @@ from PyQt5.QtWidgets import (
     QLineEdit,
     QListWidget,
     QListWidgetItem,
-    QPlainTextEdit,
+    QPlainTextEdit, QMessageBox,
 )
 
 from model import Model
 
 
 class MyWindow(QtWidgets.QMainWindow):
+    NOT_VALID_DATA_MESSAGE = 'Некорректные значения в таблице'
+    DATA_SAVED_MESSAGE = 'Данные успешно сохранены'
+    DATA_LOADED_MESSAGE = 'Данные успешно загружены'
+    FILE_NOT_EXIST_MESSAGE = 'Файл не существует'
+
     def __init__(self, model: Model):
         super(MyWindow, self).__init__()
         uic.loadUi('mainwindow.ui', self)
@@ -34,16 +35,17 @@ class MyWindow(QtWidgets.QMainWindow):
         load_file: QPushButton = self.load_file
         save: QPushButton = self.save
         save_as: QPushButton = self.save_as
+        calculate: QPushButton = self.calculate
         expert_list: QListWidget = self.expert_list
         criterion_list: QListWidget = self.criterion_list
 
-        for name, value in model.experts.items():
+        for value, name in model.experts.items():
             item = QListWidgetItem(name)
             item.setData(Qt.UserRole, value)
             expert_list.addItem(item)
         expert_list.setCurrentRow(0)
 
-        for name, value in model.criteria.items():
+        for value, name in model.criteria.items():
             item = QListWidgetItem(name)
             item.setData(Qt.UserRole, value)
             criterion_list.addItem(item)
@@ -54,9 +56,10 @@ class MyWindow(QtWidgets.QMainWindow):
         expert_list.clicked.connect(self.update_view)
         criterion_list.clicked.connect(self.update_view)
         choose_file.clicked.connect(self.open_file_dialog)
-        #save.clicked.connect(self.update_data)
-        #save_as.clicked.connect(self.save_data_json)
-        #load_file.clicked.connect(self.load_data_json)
+        save.clicked.connect(self.update_model)
+        save_as.clicked.connect(self.dump_json)
+        load_file.clicked.connect(self.load_json)
+        calculate.clicked.connect(self.get_result)
 
     @staticmethod
     def set_cell(table: QTableWidget, row, column, value):
@@ -78,7 +81,7 @@ class MyWindow(QtWidgets.QMainWindow):
     def is_table_valid(self, table: QTableWidget):
         size = table.rowCount()
         return all(
-            Model.is_value_valid()
+            Model.is_value_valid(self.get_cell(table, row, column))
             for row in range(size)
             for column in range(size)
             if row != column
@@ -87,8 +90,9 @@ class MyWindow(QtWidgets.QMainWindow):
     def highlight_table(self, table: QTableWidget):
         size = table.rowCount()
         for row in range(size):
-            for column in range(size):
-                self.highlight_cell(table.item(row, column))
+            for column in range(row + 1, size):
+                if not Model.is_value_valid(self.get_cell(table, row, column)):
+                    self.highlight_cell(table.item(row, column))
 
     def update_model(self):
         expert_list: QListWidget = self.expert_list
@@ -115,10 +119,11 @@ class MyWindow(QtWidgets.QMainWindow):
                             selected_expert, selected_criterion, row, column, self.get_cell(item_table, row, column)
                         )
 
+            self.print_message(self.DATA_SAVED_MESSAGE)
         else:
             self.highlight_table(item_table)
             self.highlight_table(expert_table)
-            self.print_message('Некорректные значения в таблице', error=True)
+            self.print_message(self.NOT_VALID_DATA_MESSAGE, error=True)
 
     def update_view(self):
         expert_list: QListWidget = self.expert_list
@@ -157,9 +162,12 @@ class MyWindow(QtWidgets.QMainWindow):
 
         row = item.row()
         column = item.column()
+        if column <= row:
+            return
+
         value = self.get_cell(table, row, column)
         if self.model.is_value_valid(value):
-            item.setBackground(QBrush(QColor(255, 255, 255)))
+            item.setBackground(QBrush(QColor(50, 50, 50)))
             if table is item_table:
                 expert_list: QListWidget = self.expert_list
                 criterion_list: QListWidget = self.criterion_list
@@ -185,10 +193,40 @@ class MyWindow(QtWidgets.QMainWindow):
         if file_name:
             file_path.setText(file_name)
 
-    def print_message(self, message: str, error: bool):
+    def print_message(self, message: str, error: bool = False):
         messages: QPlainTextEdit = self.messages
         color = 'red' if error else 'green'
         messages.appendHtml("<p><font color=\"{}\">{}</font></p>".format(color, message))
+
+    def dump_json(self):
+        path = self.file_path.text()
+        if path:
+            if self.model.is_valid():
+                self.model.dump_json(path)
+                self.print_message(self.DATA_SAVED_MESSAGE)
+            else:
+                self.print_message(self.NOT_VALID_DATA_MESSAGE, error=True)
+        else:
+            self.print_message(self.FILE_NOT_EXIST_MESSAGE, error=True)
+
+    def load_json(self):
+        path = self.file_path.text()
+        if path:
+            self.model.load_json(path)
+            self.update_view()
+            self.print_message(self.DATA_LOADED_MESSAGE)
+        else:
+            self.print_message(self.FILE_NOT_EXIST_MESSAGE, error=True)
+
+    def get_result(self):
+        if self.model.is_valid():
+            #result = self.model.get_result()
+            result = {'jdlf dflj ': 0.123, 'eurueworeu': 0.364883}
+            text = []
+            for name, value in result.items():
+                text.append('{}: {}\n'.format(name, value))
+            msg = QMessageBox(QMessageBox.Information, 'Оценки', ''.join(text))
+            msg.exec()
 
 
 if __name__ == '__main__':

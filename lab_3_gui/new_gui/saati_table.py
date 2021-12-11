@@ -75,6 +75,14 @@ class SaatiTable:
             data=[[self.value_to_float(value) for value in row] for row in self.table]
         )
 
-    def toJSON(self):
-        return json.dumps(self.table)
+    # Julia
+    def average(self):
+        pr = 1
+        list_average = []
+        size = len(self.items)
+        for i in range(size):
+            for j in range(size):
+                pr *= self.table[i][j]
+            list_average.append(pr ** (1 / size))
+        return list_average
 

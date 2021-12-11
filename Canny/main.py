@@ -30,7 +30,9 @@ def save_image(image):
 def run():
     # TODO: Добавить возможность выбора фото из системы
     # path_to_file = open_file()
-    image = cv2.imread(r"C:\Dev\Git\FuzzyLab\images\numbers\seven_1.png")
+    # path = r"C:\Dev\Git\FuzzyLab\images\numbers\seven_1.png"
+    path = r'/home/diana/Projects/FuzzyLab/images/src/horses.bmp'
+    image = cv2.imread(path)
 
     handmade_canny = hc.HandmadeCanny(image, 10, 50)
     for title, image in handmade_canny.images.items():
