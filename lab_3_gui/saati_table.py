@@ -1,3 +1,6 @@
+from typing import List
+
+
 class SaatiTable:
     values = ['9', '7', '5', '3', '1', '1/3', '1/5', '1/7', '1/9']
 
@@ -32,13 +35,12 @@ class SaatiTable:
         return len(self.items)
 
     @staticmethod
-    def from_data(items, data: list[list[str]]):
+    def from_data(items, data: List[List[str]]):
         table = SaatiTable(items)
         for row in range(table.size()):
             for column in range(table.size()):
                 if row != column:
                     table.set_value(row, column, data[row][column])
-
         return table
 
     def to_data(self):

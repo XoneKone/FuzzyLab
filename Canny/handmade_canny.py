@@ -31,9 +31,9 @@ class HandmadeCanny:
 
         self.image = self.rgb_to_gray(image)
 
-        self.images = {'Gray': self.image}
+        self.images['Gray'] = self.image
 
-        # По умолчанию используется kernel_size = 3, sigma = 1.0
+        # По умолчанию используется kernel_size = 7, sigma = 1.0
         self.image = GaussianFilterOperator(self.image).blur()
         self.images['Blurred'] = self.image
 
@@ -44,7 +44,16 @@ class HandmadeCanny:
     # TODO: Прописать свой алгоритм перевода изображения из RGB в GRAY, а не использовать этот
     def rgb_to_gray(self, image):
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        return gray
+        # return gray
+        image_row, image_col, i = image.shape
+        output = np.array(
+            [
+                [0.11 * image[iy, ix, 0] + 0.59 * image[iy, ix, 1] + 0.30 * image[iy, ix, 2] for ix in range(image_col)]
+                for iy in range(image_row)
+            ]
+        )
+
+        return output.astype('uint8')
 
     def operator_sobel(self):
 
